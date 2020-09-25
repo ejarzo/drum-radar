@@ -76,7 +76,7 @@ canvas {
 
 .color-control {
   display: flex;
-  /* height: 23px; */
+  height: 30px;
 }
 .color-control input {
   flex-grow: 1;
