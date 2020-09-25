@@ -10,15 +10,19 @@ const kit = new Tone.Players({
   sd: "samples/mt800_sd.wav",
 });
 
+// Set up master effects
 const compressor = new Tone.Compressor({});
 const distortion = new Tone.Distortion({ distortion: 0 });
 const reverb = new Tone.Freeverb({ wet: 0 });
 const gain = new Tone.Gain({ gain: 1 });
-const multibandSplit = new Tone.MultibandSplit();
-kit.chain(distortion, reverb, gain, compressor, multibandSplit);
-multibandSplit.low.chain(new Tone.Mono(), Tone.Master);
-multibandSplit.mid.chain(Tone.Master);
-multibandSplit.high.chain(Tone.Master);
+const split = new Tone.MultibandSplit();
+
+kit.chain(distortion, reverb, gain, compressor, split);
+
+// Make low frequencies mono to make reverb effect bearable in headphones
+split.low.chain(new Tone.Mono(), Tone.Master);
+split.mid.chain(Tone.Master);
+split.high.chain(Tone.Master);
 
 const sounds = [
   { sample: "lo", color: [190, 23, 237] },
@@ -29,32 +33,34 @@ const sounds = [
   { sample: "sd", color: [224, 10, 100] },
 ];
 
-circles = sounds.map((circle) => ({
-  ...circle,
+tracks = sounds.map((track) => ({
+  ...track,
   loop: null,
   loopInterval: 1,
   divisions: 1,
   isMuted: false,
 }));
 
-circles.forEach(({ color, isMuted }, i) => {
+// Create the colored controller for each track
+tracks.forEach(({ color, isMuted }, i) => {
   $(".color-controls").append(
     `<div class="color-control" style="background: rgb(${color[0]},${
       color[1]
     },${color[2]});">
       <span>
       <label class="container">
-        <input class="mute-toggle" data-circle=${i} type="checkbox" checked=${!isMuted}>
+        <input class="mute-toggle" data-track=${i} type="checkbox" checked=${!isMuted}>
         <span class="checkmark"></span>
       </label>
       </span>
-      <input class="circle-range" type="range" data-circle=${i} value="50" data-target="playbackRate" min="20" max="100"/>
-      <input class="circle-range" type="range" data-circle=${i} value="1" data-target="divisions" min="1" max="12"/>
+      <input class="track-slider" type="range" data-track=${i} value="50" data-target="playbackRate" min="20" max="100"/>
+      <input class="track-slider" type="range" data-track=${i} value="1" data-target="divisions" min="1" max="12"/>
     </div>
     `
   );
 });
 
+// Create Effect slider
 $(".project-controls").append(
   `<div class="effect-knob">
     <div><strong>!</strong></div>
@@ -70,43 +76,43 @@ $("#toggle-play").on("click", () => {
 
 $(".mute-toggle").on("change", ({ target }) => {
   const { attributes, value } = target;
-  const circleIndex = parseInt(attributes["data-circle"].value);
-  const isMuted = !circles[circleIndex].isMuted;
-  circles[circleIndex].isMuted = isMuted;
-  circles[circleIndex].loop.mute = isMuted;
+  const trackIndex = parseInt(attributes["data-track"].value);
+  const isMuted = !tracks[trackIndex].isMuted;
+  tracks[trackIndex].isMuted = isMuted;
+  tracks[trackIndex].loop.mute = isMuted;
 });
 
 // handle slider changes
-$(".circle-range").on("input", ({ target }) => {
+$(".track-slider").on("input", ({ target }) => {
   const { attributes, value } = target;
-  const circleIndex = parseInt(attributes["data-circle"].value);
+  const trackIndex = parseInt(attributes["data-track"].value);
   const dataTarget = attributes["data-target"].value;
   if (dataTarget === "playbackRate") {
-    circles[circleIndex].loopInterval = value / 50;
-    circles[circleIndex].loop.interval = value / 50;
+    tracks[trackIndex].loopInterval = value / 50;
+    tracks[trackIndex].loop.interval = value / 50;
   }
   if (dataTarget === "divisions") {
-    circles[circleIndex].divisions = parseInt(value);
+    tracks[trackIndex].divisions = parseInt(value);
   }
 });
 
-// reset on double click - maybe done by accident?
-$(".circle-range").on("dblclick", ({ target }) => {
-  // console.log("double click");
+// reset slider on double click
+$(".track-slider").on("dblclick", ({ target }) => {
   const { attributes } = target;
-  const circleIndex = parseInt(attributes["data-circle"].value);
+  const trackIndex = parseInt(attributes["data-track"].value);
   const dataTarget = attributes["data-target"].value;
   if (dataTarget === "playbackRate") {
     target.value = 50;
-    circles[circleIndex].loopInterval = 1;
-    circles[circleIndex].loop.interval = 1;
+    tracks[trackIndex].loopInterval = 1;
+    tracks[trackIndex].loop.interval = 1;
   }
   if (dataTarget === "divisions") {
     target.value = 1;
-    circles[circleIndex].divisions = 1;
+    tracks[trackIndex].divisions = 1;
   }
 });
 
+// Effect/distortion slider on master output
 $(".effect-range").on("input", ({ target }) => {
   const { value } = target;
   const val = value / 100;
@@ -123,20 +129,21 @@ function setup() {
   createCanvas(670, 670);
   rectMode(CENTER);
 
-  circles.forEach(({ sample, loopInterval: initialInterval }, i) => {
+  tracks.forEach(({ sample, loopInterval: initialInterval }, i) => {
     const loop = new Tone.Loop((time) => {
-      const { divisions, loopInterval } = circles[i];
+      const { divisions, loopInterval } = tracks[i];
       const timeUnit = loopInterval / divisions;
       for (let i = 0; i < divisions; i++) {
         kit.get(sample).start(time + i * timeUnit);
       }
     }, initialInterval).start(0);
-    circles[i].loop = loop;
+    tracks[i].loop = loop;
   });
 }
 
-function drawCircle(circleIndex) {
-  const { color, loop, divisions, loopInterval } = circles[circleIndex];
+// Draw circle representing loop
+function drawCircle(trackIndex) {
+  const { color, loop, divisions, loopInterval } = tracks[trackIndex];
   const { progress } = loop;
   const r = (TWO_PI / (1 / loopInterval)) * 40;
 
@@ -159,13 +166,14 @@ function drawCircle(circleIndex) {
   pop();
 }
 
-function drawSpokes(circleIndex) {
-  const { color, loop, divisions } = circles[circleIndex];
+// Spokes represent loop divisions
+function drawSpokes(trackIndex) {
+  const { color, loop, divisions } = tracks[trackIndex];
   const { progress } = loop;
-
   const currTheta = progress * TWO_PI;
   const sliceTheta = TWO_PI / divisions;
   const stepProgress = (currTheta % sliceTheta) / sliceTheta;
+
   for (let i = 0; i < divisions; i++) {
     const startTheta = TWO_PI * (i / divisions);
     const endTheta = TWO_PI * ((i + 1) / divisions);
@@ -191,15 +199,17 @@ function drawSpokes(circleIndex) {
     pop();
   }
 }
-function drawDot(circleIndex) {
-  const { color, loop, divisions, loopInterval } = circles[circleIndex];
+
+// Dots show progress around the loop
+function drawDot(trackIndex) {
+  const { color, loop, divisions, loopInterval } = tracks[trackIndex];
   const { progress } = loop;
   const r = (TWO_PI / (1 / loopInterval)) * 40;
-
   const currTheta = progress * TWO_PI;
   const sliceTheta = TWO_PI / divisions;
   const stepProgress = (currTheta % sliceTheta) / sliceTheta;
   const size = 14 - stepProgress * 8;
+
   push();
   noStroke();
   fill(...color, 255 - stepProgress * 230);
@@ -214,21 +224,22 @@ function draw() {
   strokeWeight(2);
   fill(100);
   noStroke();
-  // rect(width / 2 - 1, 0, 1, height);
   noFill();
-  // blendMode(HARD_LIGHT);
-  for (let i = 0; i < circles.length; i++) {
-    if (!circles[i].isMuted) {
+  // Draw spokes first
+  for (let i = 0; i < tracks.length; i++) {
+    if (!tracks[i].isMuted) {
       drawSpokes(i);
     }
   }
-  for (let i = 0; i < circles.length; i++) {
-    if (!circles[i].isMuted) {
+  // Then circles
+  for (let i = 0; i < tracks.length; i++) {
+    if (!tracks[i].isMuted) {
       drawCircle(i);
     }
   }
-  for (let i = 0; i < circles.length; i++) {
-    if (!circles[i].isMuted) {
+  // Dots on top
+  for (let i = 0; i < tracks.length; i++) {
+    if (!tracks[i].isMuted) {
       drawDot(i);
     }
   }
