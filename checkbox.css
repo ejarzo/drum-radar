@@ -1,0 +1,48 @@
+/* modified from https://www.w3schools.com/howto/howto_css_custom_checkbox.asp */
+
+/* Customize the label (the container) */
+.container {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-size: 22px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+.container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 15px;
+  width: 15px;
+  background-color: transparent;
+  border-radius: 50%;
+  border: 2px solid #fafafa;
+  margin: 5px;
+  /* margin-left: 10p; */
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.container:hover input ~ .checkmark {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.container input:checked ~ .checkmark {
+  background-color: #fafafa;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 1);
+}

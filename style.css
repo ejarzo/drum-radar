@@ -1,0 +1,148 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: "Roboto Mono", monospace;
+  background: #999;
+}
+
+body {
+  display: flex;
+  min-height: 900px;
+  align-items: center;
+}
+
+main {
+  min-width: 690px;
+  min-height: 890px;
+  margin: 0 auto;
+  border-radius: 3px;
+  background: #333;
+  box-shadow: 0 10px 170px -20px rgba(0, 0, 0, 0.9);
+}
+
+canvas {
+  border: 10px solid #333;
+  margin: 0 auto;
+  display: block;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+
+.controls {
+  display: flex;
+  background: #333;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  color: #fafafa;
+  /* border-radius: 3px; */
+  overflow: hidden;
+  border: 10px solid #333;
+  border-bottom: none;
+}
+
+.project-controls {
+  padding-right: 10px;
+  background: #333;
+  display: flex;
+  flex-direction: column;
+}
+.color-controls-title {
+  display: flex;
+}
+.color-controls-title {
+  flex-grow: 1;
+}
+.color-controls-title span:nth-child(0) {
+  flex-shrink: 1;
+}
+
+.color-control {
+  display: flex;
+  /* height: 23px; */
+}
+.color-control input {
+  flex-grow: 1;
+}
+.color-controls-wrapper {
+  background: #555;
+  border-radius: 2px;
+  padding: 5px;
+  flex-grow: 1;
+}
+
+.color-controls {
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.effect-knob {
+  background: #555;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 10px;
+  text-align: center;
+  border-radius: 2px;
+}
+.circle-power {
+  display: block;
+  background: rgba(0, 0, 0, 0.3);
+  width: 10px;
+  height: 10px;
+  border-radius: 10px;
+  border: 0;
+}
+#toggle-play {
+  cursor: pointer;
+  background: #555;
+  color: #fafafa;
+  border-radius: 2px;
+  padding: 10px;
+  margin-bottom: 10px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  display: block;
+  width: 100%;
+}
+
+#toggle-play:hover {
+  background: #fafafa;
+  color: #333;
+}
+
+.play-button-icon {
+  background: none;
+  display: block;
+  outline: none;
+  border: none;
+  width: 0;
+  height: 0;
+  margin-left: 28%;
+  border-top: 35px solid transparent;
+  border-bottom: 35px solid transparent;
+  border-left: 60px solid currentColor;
+}
+
+#toggle-play.is-playing .play-button-icon {
+  background: none;
+  display: block;
+  outline: none;
+  border: none;
+  width: 0;
+  height: 0;
+  margin-left: 10%;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  width: 60px;
+  height: 60px;
+  background: currentColor;
+  margin: 0 auto;
+  border-radius: 2px;
+}
